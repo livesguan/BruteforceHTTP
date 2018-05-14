@@ -27,6 +27,7 @@ srcPassList = 'passlist.txt'
 varTargetURL = ''
 numThread = 1
 numAccount = 0
+isRunning = True
 
 infUserOptions = '''
 Target: TARGETURL
@@ -146,21 +147,25 @@ userlist = userlistFile.read().split('\n')
 passlist = passlistFile.read().split('\n')
 maxAccount = len(userlist) * len(passlist)
 credentials = []
+numThreadDone = 0
 
 # on each brute force worker finished his job
 def onBruteDone(id, creds):
 	global credentials
+	global numThreadDone
+	global isRunning
+	numThreadDone += 1
 	if len(creds) != 0:
 		credentials.append(creds)
 
-	if numThread == id:
+	if numThreadDone == len(bruteForceWorkers):
 		if len(credentials) == 0:
 			utils.printf("Password not found!", "bad")
 		else:
 			utils.print_table(("Username", "Password"), *credentials)
-		utils.printf("\nCompleted. Run time: %0.5s [s]\n" % (
-	    time.time() - timeStarting), "good")
-		sys.exit(0)
+		utils.printf("\nCompleted. Run time: %0.5s [s]\n" % (time.time() - timeStarting), "good")
+		# Stop the whole program
+		isRunning = False
 
 # on each account that a bruteforce worker finished
 def onEachBruteDone():
@@ -185,7 +190,6 @@ listSize = int(math.ceil(float(len(userlist)) / float(numThread)))
 # [['admin', 'hello'], ['hola', 'halo']] # 2 list for 2 thread each has 2 user
 userlists = [userlist[x:x+listSize]
     for x in xrange(0, len(userlist), listSize)]
-utils.printf("Number of workers: %s\n" % len(userlists))
 utils.printf("Starting...\n")
 utils.printf("Testing connection...\n")
 readyWorkers = []
@@ -202,11 +206,11 @@ for i in xrange(len(userlists)):
 		# add thread to list
 		bruteForceWorkers.append(bruteForceWorker)
 		readyWorkers.append(str(i + 1))
-		utils.prints("Worker [%s] ready!" % '-'.join(readyWorkers))
+		utils.prints("Worker [%s] connected!" % "-".join(readyWorkers))
 	else:
 		sys.exit(0)
 
-utils.printf("All %s workers ready!" % len(readyWorkers))
+utils.printf("All %s workers ready!" % len(readyWorkers), "good")
 utils.printf("")
 readyWorkers = None
 
@@ -216,7 +220,7 @@ for i in xrange(len(bruteForceWorkers)):
 	bruteForceWorkers[i].start()
 
 # keep main thread alive
-while True:
+while isRunning:
 	try:
 		time.sleep(0.1)
 	except KeyboardInterrupt, SystemExit:

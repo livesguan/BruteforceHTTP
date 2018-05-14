@@ -1,5 +1,5 @@
 import actions, utils, sys, mechanize
-import threading, itertools
+import threading
 
 ##################################################################
 #
@@ -41,7 +41,7 @@ class BruteForcing(threading.Thread):
 		self.frmPassField = ''
 		self.lstUsername = optUsrList
 		self.lstPassword = optPassList
-		self.szPassword = actions.subaction_countListSize(self.lstPassword)
+		#self.szPassword = actions.subaction_countListSize(self.lstPassword)
 		self.fndData = []
 		self.isPassFound = False
 		self.id = pid
@@ -70,7 +70,7 @@ class BruteForcing(threading.Thread):
 			process.close()
 			return True
 
-		except TypeError:
+		except TypeError, e:
 			utils.printf("Can not find any login form in %s" %(self.varTargetURL), "bad")
 			return False
 
@@ -109,6 +109,7 @@ class BruteForcing(threading.Thread):
 
 		except mechanize.HTTPError as error:
 			utils.printf(error, "bad")
+			self.callback(self.id, self.actGetResult())
 			sys.exit(1)
 
 	def run(self):
