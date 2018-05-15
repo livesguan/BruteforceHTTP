@@ -136,16 +136,15 @@ print(infUserOptions)
 
 timeStarting = time.time()
 bruteForceWorkers = []
+numUser = 0
+numPass = 0
 
+for i in userlist:
+	numUser += 1
+for i in passlist:
+	numPass += 1
 
-# Split user list
-# We don't want to split password because we will use all pass for each user
-# spliting user is the only choice !
-userlistFile = userlist
-passlistFile = passlist
-userlist = userlistFile.read().split('\n')
-passlist = passlistFile.read().split('\n')
-maxAccount = len(userlist) * len(passlist)
+maxAccount = numUser * numPass
 credentials = []
 numThreadDone = 0
 
@@ -185,30 +184,27 @@ def onEachBruteDone():
 # if we has 8 user in list and run with 4 thread
 # then the list size will be 8 / 4 = 2 users
 # which means each thread brute 2 users
-listSize = int(math.ceil(float(len(userlist)) / float(numThread)))
-# array of users for each thread
-# [['admin', 'hello'], ['hola', 'halo']] # 2 list for 2 thread each has 2 user
-userlists = [userlist[x:x+listSize]
-    for x in xrange(0, len(userlist), listSize)]
+listSize = int(math.ceil(float(numUser) / float(numThread)))
 utils.printf("Starting...\n")
 utils.printf("Testing connection...\n")
 readyWorkers = []
+currentWorkerId = 1
 # loop through list of users
-for i in xrange(len(userlists)):
-	# get user list for current thread
-	users = userlists[i]
+for i in xrange(0, numUser, listSize):
 	# create new thread
 	bruteForceWorker = httpbrute.BruteForcing(
-	    varTargetURL, users, passlist, (i + 1))
+	    varTargetURL, userlist, passlist, currentWorkerId, listSize)
 	bruteForceWorker.setOnEachBruteCallback(onEachBruteDone)
 	bruteForceWorker.setCallback(onBruteDone)
 	if bruteForceWorker.actTestConnection():
 		# add thread to list
 		bruteForceWorkers.append(bruteForceWorker)
-		readyWorkers.append(str(i + 1))
+		readyWorkers.append(str(currentWorkerId))
 		utils.prints("Worker [%s] connected!" % "-".join(readyWorkers))
 	else:
 		sys.exit(0)
+	
+	currentWorkerId += 1
 
 utils.printf("All %s workers ready!" % len(readyWorkers), "good")
 utils.printf("")
@@ -224,7 +220,9 @@ while isRunning:
 	try:
 		time.sleep(0.1)
 	except KeyboardInterrupt, SystemExit:
-		userlistFile.close()
-		passlistFile.close()
+		try:
+			userlist.close()
+			passlist.close()
+		except:
+			pass
 		sys.exit(0)
-sys.exit(0)

