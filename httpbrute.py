@@ -122,7 +122,7 @@ def handle(optionURL, optionUserlist, optionPasslist, sizePasslist, setProxyList
 
 					#	Clear object and try new username
 					proc.close()
-					break
+					return [tryUsername, tryPassword]
 
 			except mechanize.HTTPError as error:
 				#	Get blocked
