@@ -34,7 +34,7 @@ def handle(url, user_list, pass_list, set_proxy_list, set_key=''):
             user_agent = tbrowser.user_agent()
             browser.addheaders = [('User-Agent', user_agent)]
             if set_proxy_list:
-                proxy_addr = actions.randomFromList(set_proxy_list)
+                proxy_addr = actions.random_from_list(set_proxy_list)
                 browser.set_proxies({"http": proxy_addr})
             browser.open(url)
             try:

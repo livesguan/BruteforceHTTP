@@ -7,6 +7,7 @@ This project focusing on Brute Forcing HTTP protocol AUTOMATICALLY.
 ## Installation
 
 Requirements
+# python2.x
 pip install -r requirements.txt
 
 
@@ -43,8 +44,4 @@ python main.py -u <path to userlist> -p <path to passlist> <Target URL>
 ## How this tool work
 This tool will detect form field automatically, collect information and submit data therefor it can handle csrf token.
 
-## TODO:
- - [] Multi user and password
- - [] Login uri check
- - [] Multi threading
 

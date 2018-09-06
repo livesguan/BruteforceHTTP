@@ -31,8 +31,8 @@ def size_o(objInputData):
         return len(objInputData.split('\n'))
 
 
-def randomFromList(listData):
-    return random.choice(listData)
+def random_from_list(list_data):
+    return random.choice(list_data)
 
 
 def randomFromFile(path):
@@ -40,9 +40,8 @@ def randomFromFile(path):
     #    Return random User Agents from file
     #
     ##########################################
-
     loadData = fread(path).split("\n")
-    retData = randomFromList(loadData)
+    retData = random_from_list(loadData)
     return retData
 
 def getProxyList():

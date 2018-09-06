@@ -16,7 +16,7 @@ DEF_R_MODE = ("--verbose", "--log", "--proxy")
 DEF_OPS = ("-u", "-U", "-p", "-t", "-k")
 
 R_OPTIONS = {
-    "--proxy": False,
+    "--proxy": True,
     "--log": False,
     "--verbose": False
 }
