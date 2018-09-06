@@ -1,171 +1,126 @@
-import sys, data
-from core import utils, actions
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
 
-##############################################
-#	Parse user's options
-#	Create default options
-#
-############################################
+import data
+import sys
+from core import actions, utils
 
-"""
-	Format: python main.py [--<mode>] [-<option> <value>] <url>
-	mode and option are optinal
-	Todo: add working modules (likes getproxy) to main		
-"""
-
-	
 URL = None
-USERLIST = "default"
-PASSLIST = "default"
-THREADS = 3
+USER_LIST = "default"
+PASS_LIST = "default"
+THREADS = 1
 KEY_FALSE = None
 MODE = "--brute"
+DEF_A_MODE = ("--brute", "--sqli", "--basic")
+DEF_R_MODE = ("--verbose", "--log", "--proxy")
+DEF_OPS = ("-u", "-U", "-p", "-t", "-k")
 
-r_options = {
-	"--proxy": False,
-	"--log": False,
-	"--verbose": False
+R_OPTIONS = {
+    "--proxy": False,
+    "--log": False,
+    "--verbose": False
 }
 
-def checkOption(url, options, r_options):
-	
-	finalOption = {}
-	global MODE
-	# Modify URL value to correct format
-	# Read password list
-	# Read userlist
-	# Convert to int(threads)
-	
-	
-	try:
-		finalOption["threads"] = int(options["-t"])
-	except Exception as ConvertError:
-		utils.die("Invalid threads", ConvertError)
-		
-	if MODE == "--sqli":
-		finalOption["passlist"] = "MyP@ssW0rd"
-		finalOption["userlist"] = data.getSQL()
-		
-	else:
-		finalOption["passlist"] = data.getPass() if options["-p"] == "default" else actions.fread(options["-p"])
-		
-		if options["-U"]:
-			finalOption["userlist"] = actions.lread(options["-U"])
-		else:
-			finalOption["userlist"] = data.getUser() if options["-u"] == "default" else actions.fread(options["-u"])
-	
-	finalOption["falsekey"] = options["-k"]
-	
-	if "http" not in url:
-		url = "http://%s" %(url)
-	if url[-1] != "/":
-		url += "/"
-		
-	if r_options["--proxy"]:
-		r_options["--proxy"] = actions.getProxyList()
-	
-	return url, finalOption, r_options
+
+def check_option(url, options, r_options):
+    global MODE
+
+    final_option = {}
+    try:
+        final_option["threads"] = int(options["-t"])
+    except Exception as ConvertError:
+        utils.die("Invalid threads", ConvertError)
+
+    if MODE == "--sqli":
+        final_option["passlist"] = "MyP@ssW0rd"
+        final_option["userlist"] = data.getSQL()
+
+    else:
+        final_option["passlist"] = data.getPass() if options["-p"] == "default" else actions.fread(options["-p"])
+        if options["-U"]:
+            final_option["userlist"] = actions.lread(options["-U"])
+        else:
+            final_option["userlist"] = data.getUser() if options["-u"] == "default" else actions.fread(options["-u"])
+
+        final_option["falsekey"] = options["-k"]
+
+    if "http" not in url:
+        url = "http://%s" % url
+    if url[-1] != "/":
+        url += "/"
+
+    if r_options["--proxy"]:
+        r_options["--proxy"] = actions.getProxyList()
+
+    return url, final_option, r_options
 
 
-def getUserOptions():
-	
-	global URL, USERLIST, PASSLIST, THREADS, KEY_FALSE, MODE, r_options
-	
-	# Default operation modes:
-	#	--brute: brute force
-	#	--sqli: sql injection bypass login (TODO)
-	#	--basic: http basic authentication (TODO)
-	
-	DEF_A_MODE = ("--brute", "--sqli", "--basic")
-	
-	# Default running mode:
-	#	--verbose: display informations (TODO)
-	#	--log: creating log file (TODO)
-	#	--proxy: Running using proxy
-	
-	DEF_R_MODE = ("--verbose", "--log", "--proxy")
-	
-	# Default options:
-	#	-u: Read userlist from file
-	#	-p: Read passlit from file
-	#	-U: Read username / userlist directly from argument
-	#	-t: Number of threads using #TODO Modify for new module
-	#	-k: Set key for false condition (for special cases)
-	
-	DEF_OPS = ("-u", "-U", "-p", "-t", "-k")
-	
-	options = {
-		"-u": USERLIST,
-		"-p": PASSLIST,
-		"-t": THREADS,
-		"-k": KEY_FALSE,
-		"-U": None,
-	}
-	
-	
-	if len(sys.argv) == 1:
-		utils.print_help()
-		sys.exit(0)
-	
-	idx = 1
-	while idx < len(sys.argv):
-		if sys.argv[idx] in ("-h", "--help", "help"):
-			utils.print_help()
-			
-		else:
-			if sys.argv[idx] in DEF_R_MODE:
-				r_options[sys.argv[idx]] = True
+def get_user_options():
+    global URL, USER_LIST, PASS_LIST, THREADS, KEY_FALSE, MODE, R_OPTIONS, DEF_A_MODE, DEF_R_MODE, DEF_OPS
+    
+    options = {
+        "-u": USER_LIST,
+        "-p": PASS_LIST,
+        "-t": THREADS,
+        "-k": KEY_FALSE,
+        "-U": None,
+    }
 
-			elif sys.argv[idx] in DEF_A_MODE:
-				MODE = sys.argv[idx]
-				idx += 1
-				
-			elif sys.argv[idx] in DEF_OPS:
-				options[sys.argv[idx]] = sys.argv[idx + 1]
-				idx += 1
-				
-			else:
-				URL  = sys.argv[idx]
-				
-		idx += 1
-	
-	if not URL:
-		utils.printf("An URL is required", "bad")
-		sys.exit(1)
-	else:
-		utils.printf(craftbanner(URL, options, MODE, r_options), "good")
-		URL, options, r_options = checkOption(URL, options, r_options)
+    if len(sys.argv) == 1:
+        utils.print_help()
+        sys.exit(0)
 
-		return URL, options, MODE, r_options
+    idx = 1
+    while idx < len(sys.argv):
+        if sys.argv[idx] in ("-h", "--help", "help"):
+            utils.print_help()
+        else:
+            if sys.argv[idx] in DEF_R_MODE:
+                R_OPTIONS[sys.argv[idx]] = True
+
+            elif sys.argv[idx] in DEF_A_MODE:
+                MODE = sys.argv[idx]
+                idx += 1
+
+            elif sys.argv[idx] in DEF_OPS:
+                options[sys.argv[idx]] = sys.argv[idx + 1]
+                idx += 1
+
+            else:
+                URL = sys.argv[idx]
+        idx += 1
+
+    if not URL:
+        utils.printf("An URL is required", "bad")
+        sys.exit(1)
+    else:
+        utils.printf(craft_banner(URL, options, MODE, R_OPTIONS), "good")
+        URL, options, R_OPTIONS = check_option(URL, options, R_OPTIONS)
+
+        return URL, options, MODE, R_OPTIONS
 
 
-def craftbanner(url, options, mode, r_options):
-	usr = options["-U"] if options["-U"] else options["-u"]
+def craft_banner(url, options, mode, R_OPTIONS):
+    usr = options["-U"] if options["-U"] else options["-u"]
 
-	banner = """
-	  =================================================================
-	/  Target: %-56s \\
-	|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|
-	|  Users: %-58s |
-	|  Password: %-55s |
-	|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|
-	|                                                                    |
-	|      Attack mode: %-6s |   Using Proxy: %-6s |   Threads: %-4s |
-	|                                                                    |
-	|--------------------------------------------------------------------|
-	|          Verbose: %-13s  |          Save Log: %-12s |
-	|--------------------------------------------------------------------|
-	\\  False keyword: %-49s /
-	  =================================================================
-	""" %(url,
-		usr,
-		options["-p"],
-		mode.replace("--", ""),
-		r_options["--proxy"],
-		options["-t"],
-		r_options["--verbose"],
-		r_options["--log"],
-		options["-k"]
-	)
-	
-	return banner.replace("\t", "  ")
+    banner = """
+      =================================================================
+    /  Target: %-56s \\
+    |++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|
+    |  Users: %-58s |
+    |  Password: %-55s |
+    |++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|
+    |                                                                    |
+    |      Attack mode: %-6s |   Using Proxy: %-6s |   Threads: %-4s |
+    |                                                                    |
+    |--------------------------------------------------------------------|
+    |          Verbose: %-13s  |          Save Log: %-12s |
+    |--------------------------------------------------------------------|
+    \\  False keyword: %-49s /
+      =================================================================
+    """ % (url, usr, options["-p"], mode.replace("--", ""), 
+           R_OPTIONS["--proxy"], options["-t"], R_OPTIONS["--verbose"], 
+           R_OPTIONS["--log"], options["-k"])
+
+    return banner.replace("\t", "  ")
+

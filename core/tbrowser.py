@@ -1,45 +1,37 @@
-import data, actions, re
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
 
-def startBrowser():
-	import mechanize
-	browser = mechanize.Browser()
-	browser.set_handle_robots(False)
-	browser.set_handle_referer(True)
-	browser.set_handle_redirect(True)
-	browser.set_handle_equiv(True)
-	return browser
-	
-def getLoginForm(objBrowserForm):
-	##########################################
-	#	Get Login Form Information
-	#	Need form ID for select_form(nr = ID)
-	#	Username field's name for submiting
-	#	Password field's name for submiting
-	#
-	#	*** NEED IMPROVE ***
-	#
-	###########################################
+import actions
+import data
+import mechanize
+import re
 
-	# Using for loop for getting
-	retFormID = 0
 
-	regTextField = r"TextControl\W(.*)="
-	regPassField = r"PasswordControl\W(.*)="
+def start_browser():
+    browser = mechanize.Browser()
+    browser.set_handle_robots(False)
+    browser.set_handle_referer(True)
+    browser.set_handle_redirect(True)
+    browser.set_handle_equiv(True)
+    return browser
 
-	# Find login form
-	for idxSingleForm in objBrowserForm:
-		try:
-			#retTextField = re.findall(regTextField, str(idxSingleForm).encode('utf-8'), re.MULTILINE)[0]
-			#retPassField = re.findall(regPassField, str(idxSingleForm).encode('utf-8'), re.MULTILINE)[0]
-			retTextField = re.findall(regTextField, str(idxSingleForm), re.MULTILINE)[0]
-			retPassField = re.findall(regPassField, str(idxSingleForm), re.MULTILINE)[0]
-			#objBrowserForm.close() #This is seems useless
-			return retFormID, retTextField, retPassField
-		except:
-			retFormID += 1
-	return None
-	
-def useragent():
-	agents = data.getAgent()
-	
-	return actions.randomFromList(agents.split("\n"))
+
+def get_login_form(browser_form):
+    ret_form_id = 0
+    text_field = r"TextControl\W(.*)="
+    pass_field = r"PasswordControl\W(.*)="
+
+    for form in browser_form:
+        try:
+            reg_text_field = re.findall(text_field, str(form), re.MULTILINE)[0]
+            reg_pass_field = re.findall(pass_field, str(form), re.MULTILINE)[0]
+            return ret_form_id, reg_text_field, reg_pass_field
+        except:
+            ret_form_id += 1
+    return None
+
+
+def user_agent():
+    agents = data.get_agent()
+    return actions.randomFromList(agents.split("\n"))
+
