@@ -8,7 +8,7 @@ import mechanize
 def parse_form(url):
     try:
         process = tbrowser.start_browser()
-        user_agent = tbrowser.useragent()
+        user_agent = tbrowser.user_agent()
         process.addheaders = [('User-Agent', user_agent)]
         process.open(url)
         form_login_id, form_user_field, form_pass_field = tbrowser.get_login_form(process.forms())
@@ -27,7 +27,7 @@ def handle(url, user_list, pass_list, set_proxy_list, set_key=''):
     form_login_id, form_user_field, form_pass_field = parse_form(url)
     for user_name in user_list:
         user_name = user_name.replace('\n', '')
-        browser = tbrowser.startBrowser()
+        browser = tbrowser.start_browser()
         idx = 0
         for password in pass_list:
             password = password.replace('\n', '')
@@ -40,13 +40,12 @@ def handle(url, user_list, pass_list, set_proxy_list, set_key=''):
             try:
                 idx += 1
                 browser.select_form(nr=form_login_id)
-                browser.form[form_login_id] = user_name
-                browser.form[form_user_field] = password
-                utils.printp(user_name, idx, set_proxy_list)
+                browser.form[form_user_field] = user_name
+                browser.form[form_pass_field] = password
                 browser.submit()
                 browser.reload()
 
-                if not tbrowser.getLoginForm(browser.forms()):
+                if not tbrowser.get_login_form(browser.forms()):
                     if set_key:
                         if set_key not in browser.response().read():
                             browser.close()

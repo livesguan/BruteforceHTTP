@@ -1,4 +1,10 @@
-import random, sys, utils, string
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+import random
+import string
+import utils
+
 
 def get_root_dir(pathModuleLocation):
     ##################################
@@ -9,6 +15,7 @@ def get_root_dir(pathModuleLocation):
 
     pathModuleLocation = "/".join(pathModuleLocation.split("/")[:-1])
     return pathModuleLocation
+
 
 def size_o(objInputData):
     #    Return length of a file object or list
@@ -23,8 +30,10 @@ def size_o(objInputData):
     elif type(objInputData) == str:
         return len(objInputData.split('\n'))
 
+
 def randomFromList(listData):
     return random.choice(listData)
+
 
 def randomFromFile(path):
     ##########################################
@@ -67,6 +76,7 @@ def fload(pathFileLocation):
     except Exception as error:
         utils.die("Error while loading file!", error)
 
+
 def fread(pathFileLocation):
     try:
         retObj = fload(pathFileLocation)
@@ -79,6 +89,7 @@ def fread(pathFileLocation):
         except:
             pass
 
+
 def fwrite(pathFileLocation, writeData):
     try:
         objFileWrite = open(pathFileLocation, "w'")
@@ -89,7 +100,6 @@ def fwrite(pathFileLocation, writeData):
         objFileWrite.close()
 
 
-
 def fwrite_c(pathFileLocation, writeData):
     try:
         fileWrite = open(pathFileLocation, "a")
@@ -98,6 +108,7 @@ def fwrite_c(pathFileLocation, writeData):
         utils.die("Error while continuing write file", err)
     finally:
         fileWrite.close()
+
 
 def randomString(min = 2, max = 5):
     #https://stackoverflow.com/a/2257449

@@ -1,10 +1,14 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+
 import actions
 import data
 import mechanize
 import re
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 def start_browser():
